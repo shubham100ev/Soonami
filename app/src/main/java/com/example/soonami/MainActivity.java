@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * URL to query the USGS dataset for earthquake information
      */
-    private static final String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-01-01&endtime=2014-12-01&minmagnitude=7";
+    private static String USGS_REQUEST_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-01-01&endtime=2014-12-01&minmagnitude=7";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Update the screen to display information from the given {@link Event}.
      */
-    private void updateUi(Event earthquake) {
+    public void updateUi(Event earthquake) {
         // Display the earthquake title in the UI
         TextView titleTextView = findViewById(R.id.title);
         titleTextView.setText(earthquake.title);
@@ -89,12 +89,12 @@ public class MainActivity extends AppCompatActivity {
      * {@link AsyncTask} to perform the network request on a background thread, and then
      * update the UI with the first earthquake in the response.
      */
-    private class TsunamiAsyncTask extends AsyncTask<URL, Void, Event> {
+    public class TsunamiAsyncTask extends AsyncTask<URL, Void, Event> {
 
         @Override
         protected Event doInBackground(URL... urls) {
             // Create URL object
-            URL url = createUrl(USGS_REQUEST_URL);
+            URL url = createUrl(MainActivity.USGS_REQUEST_URL);
 
             // Perform HTTP request to the URL and receive a JSON response back
             String jsonResponse = "";
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         private String makeHttpRequest(URL url) throws IOException {
             String jsonResponse = "";
 
-            if(url==null)
+            if (url == null)
                 return jsonResponse;
 
             HttpURLConnection urlConnection = null;
@@ -158,9 +158,10 @@ public class MainActivity extends AppCompatActivity {
                 if (urlConnection.getResponseCode() == 200) {
                     inputStream = urlConnection.getInputStream();
                     jsonResponse = readFromStream(inputStream);
-                }
+                } else
+                    Log.e("Status code", "Status code not equal to 200");
             } catch (IOException e) {
-                // TODO: Handle the exception
+                Log.e(LOG_TAG, "Problem in connection", e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -196,8 +197,8 @@ public class MainActivity extends AppCompatActivity {
          * about the first earthquake from the input earthquakeJSON string.
          */
         private Event extractFeatureFromJson(String earthquakeJSON) {
-            if(TextUtils.isEmpty(earthquakeJSON))
-                return null; 
+            if (TextUtils.isEmpty(earthquakeJSON))
+                return null;
             try {
                 JSONObject baseJsonResponse = new JSONObject(earthquakeJSON);
                 JSONArray featureArray = baseJsonResponse.getJSONArray("features");
@@ -222,4 +223,5 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
+
 }
